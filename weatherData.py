@@ -1,7 +1,7 @@
 
 from bs4 import BeautifulSoup
 import requests
-#this is a test
+
 month = input("Enter month number: ")
 
 year = input("Enter year: ")
@@ -10,7 +10,6 @@ url = "https://climate.weather.gc.ca/climate_data/daily_data_e.html?StationID=28
 
 result = requests.get(url)
 
-#with open("/Users/williamgore/Documents/test.html", "r") as f:
 doc = BeautifulSoup(result.text, "html.parser")
 
 tags = doc.find_all("td") 
