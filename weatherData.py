@@ -2,28 +2,22 @@ from datetime import date
 from bs4 import BeautifulSoup
 import requests
 
-
-
-
 NUM_ROWS = 11
 
 HIGH_OFFSET = 0
 LOW_OFFSET = 1
 MEAN_OFFSET = 2
 
+#earliest year of data collection
 EARLIEST_YEAR = 2000
-
 
 def updateData(year, month):
     url = "https://climate.weather.gc.ca/climate_data/daily_data_e.html?StationID=28051&timeframe=2&StartYear=1840&EndYear=2024&Day=1&Year="+str(year)+"&Month=" + str(month) + "#"
     result = requests.get(url)
-    #result = requests.get(url)
 
     doc = BeautifulSoup(result.text, "html.parser")
-    #doc = BeautifulSoup(result.text, "html.parser")
 
     return doc.find_all("td") 
-    #tags = doc.find_all("td") 
     
 
 def getAvg(offset):
@@ -61,7 +55,6 @@ def getAvg(offset):
 def compare():
     #YYYY-MM-DD
     today = date.today()
-    print(today)
 
 def getAvgTemp():
     avgTemp = getAvg(MEAN_OFFSET)
@@ -113,6 +106,3 @@ while 1:
     else:
         print("exiting")
         exit()
-
-today = date.today()
-print(today)
