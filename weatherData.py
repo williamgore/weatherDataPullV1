@@ -12,6 +12,8 @@ monthMaxDay = 32
 #earliest year of data collection
 EARLIEST_YEAR = 2000
 
+#checks if the given year and month
+#have data available
 def dateIsValid(year, month):
     today = str(date.today())
 
@@ -35,7 +37,7 @@ def dateIsValid(year, month):
     return True
 
 
-
+#Updayes data to a new given month
 def updateData(year, month):
     url = "https://climate.weather.gc.ca/climate_data/daily_data_e.html?StationID=28051&timeframe=2&StartYear=1840&EndYear=2024&Day=1&Year="+str(year)+"&Month=" + str(month) + "#"
     result = requests.get(url)
@@ -47,7 +49,7 @@ def updateData(year, month):
 
     
 
-    
+#gets input from the user for their desired month/year
 def getInput():
     global month
     global year
@@ -61,12 +63,17 @@ def getInput():
     
 getInput()
 
+#gets the average min/max/overall temperature
+#offset: number of tags to shift by to get the correct data
+#0 = daily high temperature
+#1 = daily low temperature
+#2 = daily average temperature
 def getAvg(offset):
     i = 0
     days = 0
     sum = 0
     
-    while i <= monthMaxDay:
+    while i < monthMaxDay:
         if tags[i*NUM_ROWS + offset].string == u'\xa0' :
             break
         try:
@@ -95,9 +102,7 @@ def getAvg(offset):
 #start at the earliest year, make your way up to the latest year
 
 def compare():
-    #YYYY-MM-DD
-    #ok so star cycling through to find all da shit
-    #start at year 2000
+    
     currAvg = round(getAvg(MEAN_OFFSET),2)
     #if the year and month match the current, set max day to the current day
     #otherwise set it to 32
@@ -106,9 +111,11 @@ def compare():
     currMonth = int(today[5:-3])
     currYear = int(today[:4])
     
+    global monthMaxDay
+    
     #this isnt gonna work at all cuz everytime i try to get data for a new month its gonna update
     if(currYear == int(year) and currMonth == int(month)):
-        monthMaxDay = int(today[-2:])
+        monthMaxDay = int(today[-2:]) - 1
         print("month max day is now: " + str(monthMaxDay))
     else:
         monthMaxDay = 32
