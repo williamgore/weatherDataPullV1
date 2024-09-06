@@ -7,24 +7,66 @@ NUM_ROWS = 11
 HIGH_OFFSET = 0
 LOW_OFFSET = 1
 MEAN_OFFSET = 2
+monthMaxDay = 32
 
 #earliest year of data collection
 EARLIEST_YEAR = 2000
+
+def dateIsValid(year, month):
+    today = str(date.today())
+
+    year = int(year)
+    month = int(month)
+
+    currMonth = int(today[5:-3])
+    currYear = int(today[:4])
+    
+    if(month < 1 or month > 12):
+        print("Month is not valid")
+        return False
+    elif(year < EARLIEST_YEAR or year > currYear):
+        print("Year has no data")
+        return False
+    elif(year == currYear):
+        if(month > currMonth):
+            print("This month has yet to happen")
+            return False
+        
+    return True
+
+
 
 def updateData(year, month):
     url = "https://climate.weather.gc.ca/climate_data/daily_data_e.html?StationID=28051&timeframe=2&StartYear=1840&EndYear=2024&Day=1&Year="+str(year)+"&Month=" + str(month) + "#"
     result = requests.get(url)
 
     doc = BeautifulSoup(result.text, "html.parser")
-
-    return doc.find_all("td") 
     
+    global tags
+    tags = doc.find_all("td")
+
+    
+
+    
+def getInput():
+    global month
+    global year
+    month = input("Enter month number: ")
+    year = input("Enter year: ")
+    while(dateIsValid(year, month) == False):
+            month = input("Enter month number: ")
+            year = input("Enter year: ")   
+    
+    updateData(year, month)
+    
+getInput()
 
 def getAvg(offset):
     i = 0
     days = 0
     sum = 0
-    while i<33:
+    
+    while i <= monthMaxDay:
         if tags[i*NUM_ROWS + offset].string == u'\xa0' :
             break
         try:
@@ -54,7 +96,56 @@ def getAvg(offset):
 
 def compare():
     #YYYY-MM-DD
-    today = date.today()
+    #ok so star cycling through to find all da shit
+    #start at year 2000
+    currAvg = round(getAvg(MEAN_OFFSET),2)
+    #if the year and month match the current, set max day to the current day
+    #otherwise set it to 32
+    today = str(date.today())
+
+    currMonth = int(today[5:-3])
+    currYear = int(today[:4])
+    
+    #this isnt gonna work at all cuz everytime i try to get data for a new month its gonna update
+    if(currYear == int(year) and currMonth == int(month)):
+        monthMaxDay = int(today[-2:])
+        print("month max day is now: " + str(monthMaxDay))
+    else:
+        monthMaxDay = 32
+        print("month max day is now: " + str(monthMaxDay))
+        
+    divisor = int(year) - EARLIEST_YEAR
+    
+    sum = 0
+    
+    
+    maxYear = year
+    
+    i = EARLIEST_YEAR
+    while i < int(maxYear):
+        updateData(i, month)
+        print("getting data for " +str(month)+"/"+str(i))
+        newAvg = getAvg(MEAN_OFFSET)
+        sum = sum + newAvg
+        print("Sum is now: " + str(sum) + "\n")
+        i = i + 1
+        
+    avg = round(sum/divisor, 2)
+    
+    if(currAvg < avg):
+        print("With an average temperature of " + str(currAvg) + "°C, " + str(month)+"/"+str(year)+ " has been " + str(round((avg - currAvg),2)) + "°C cooler than usual.")
+        
+    elif(currAvg > avg):
+        print("With an average temperature of " + str(currAvg) + "°C, " + str(month)+"/"+str(year)+ " has been " + str(round((currAvg - avg),2)) + "°C warmer than usual.")
+
+    print("avg for the month over all is " + str(avg))
+    print("Avg for this month is " + str(currAvg))
+    
+    monthMaxDay = 32
+    
+    
+        
+        
 
 def getAvgTemp():
     avgTemp = getAvg(MEAN_OFFSET)
@@ -69,11 +160,7 @@ def getAvgLow():
     print ("Average daily low for " + str(month) + "/" + str(year) + ": " + str(avgLow) + "\n") 
 
 
-month = input("Enter month number: ")
 
-year = input("Enter year: ")
-
-tags = updateData(year, month)
 
 while 1:
     command = input("Select a function: \n"
@@ -96,12 +183,11 @@ while 1:
         getAvgTemp()
         
     elif command == "4":
-        print("WIP")
+        compare()
         
     elif command == "5":
-        month = input("Enter month number: ")
-        year = input("Enter year: ")
-        tags = updateData(year, month)
+        
+       getInput()
         
     else:
         print("exiting")
