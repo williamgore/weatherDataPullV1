@@ -193,9 +193,8 @@ while 1:
         compare()
         
     elif command == "5":
-        
        getInput()
         
-    else:
+    elif command == "X":
         print("exiting")
         exit()
